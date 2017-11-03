@@ -7,7 +7,7 @@
 / Header Markup
 /*************************************/
 header {
-    border-bottom: 0.0625em solid #ccc;
+    border-bottom: 1px solid #ccc;
     display: block;
     padding: 10px 50px;
 
@@ -17,11 +17,14 @@ header {
 header > h1 {
     display: inline-block;
     padding-top: 20px;
+    width: 40%;
+    font-family: "Georgia";
 }
 
 header > nav {
     display: inline-block;
-    padding-left: 15%;
+    padding-left: auto;
+    width: 60%;
 }
 
 header > nav > ul > li {
@@ -57,6 +60,7 @@ h2 {
     font-family: "Georgia";
     font-size: 42px;
     padding-bottom: 24px;
+    line-height: 42px;
 }
 
 h3 {
@@ -99,7 +103,6 @@ footer {
     float: left;
 
     padding-top: 8%;
-    padding-left: 10%;
     padding-bottom: 50px;
 
     line-height: 24px;
@@ -111,7 +114,7 @@ footer {
 
 #main_content > article > figure {
     display: block;
-    width: 60%;
+    width: 75%;
     margin: 50px auto;
 }
 
@@ -120,8 +123,13 @@ footer {
     margin: 0 auto;
 }
 
+#main_content > article > figure > img {
+    width: 100%;
+    margin: 0 auto;
+}
+
 #main_content > article > figure > figcaption {
-    text-align: left;
+    text-align: center;
 }
 
 /**************************************
@@ -131,7 +139,8 @@ footer {
     width: 20%;
     float: left;
 
-    padding-top: 10.5%;
+    padding-top: 12.5%;
+    padding-right: 10%;
     line-height: 24px;
 }
 
@@ -139,7 +148,7 @@ footer {
     line-height: 24px;
     text-align: right;
     white-space: pre-line;
-    border-bottom: 0.0625em solid #ccc;
+    border-bottom: 1px solid #ccc;
     padding-bottom: 25px;
 }
 

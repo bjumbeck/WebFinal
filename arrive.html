@@ -116,18 +116,18 @@ if (distance < slowingRadius) {
 steering = desired_velocity - velocity</code></pre>
 
                 <p>
-                    If the distance is greater than <code class="language-cpp">slowingRadius</code>, it means the character is far away from the 
-                    target and its velocity should remain <code class="language-cpp">max_velocity</code>.
+                    If the distance is greater than slowingRadius, it means the character is far away from the 
+                    target and its velocity should remain max_velocity.
                 </p>
 
                 <p>
-                    If the distance is less than <code class="language-cpp">slowingRadius</code>, it means the character has entered the slowing area and its 
+                    If the distance is less than slowingRadius, it means the character has entered the slowing area and its 
                     velocity should be ramped down.
                 </p>
 
                 <p>
-                    The term <code class="language-cpp">distance / slowingRadius</code> will vary from 1 (when <code class="language-cpp">distance </code> 
-                    equals <code class="language-cpp">slowingRadius</code>) to 0 (when <code class="language-cpp">distance </code> is almost zero). 
+                    The term distance / slowingRadius will vary from 1 (when distance
+                    equals slowingRadius) to 0 (when distance is almost zero). 
                     This linear variation will make the velocity smoothly slow down:
                 </p>
 
