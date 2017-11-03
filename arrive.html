@@ -1,0 +1,163 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <title>Arrive Behavior</title>
+    <link rel="stylesheet" href="Resources/stylesheet.css">
+    <link rel="stylesheet" href="Resources/prism.css">
+    <script src="Resources/prism.js"></script>
+</head>
+
+<body>
+    <div id="top_bar"/>
+
+    <div id="below_top_bar">
+        <header>
+            <h1>AI: Steering Behaviors</h1>
+
+            <nav>
+                <ul>
+                    <li><a href="index.html">Seek</a></li>
+                    <li><a href="arrive.html">Arrive</a></li>
+                    <li><a href="flee.html">Flee</a></li>
+                    <li><a href="wander.html">Wander</a></li>
+                    <li><a href="collision.html">Collision Avoidance</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <div id="sidebar">
+            <p id="article_info">
+                "Arrive Behavior" by <a href="https://gamedevelopment.tutsplus.com/tutorials/understanding-steering-behaviors-flee-and-arrival--gamedev-1303">Fernando Bevilacqua</a>
+                October 26th 2012
+            </p>
+
+            <p id="about_info">
+                <h3>About this site</h3>
+                This website was used for my final project in my web design course.
+                I chose to create a website that hosts some of my favorite articles about steering behavior AI. 
+                I have not written any of these articles and all credit for the articles content goes to their 
+                writers which is listed above.
+
+                Hopefully you enjoy some of these articles, if you do please check out the creators webpages
+                which have even more for your enjoyment.
+            </p>
+        </div>
+
+        <div id="main_content">
+            <h2>Behavior: Arrive</h2>
+            <article>
+                <p>
+                    The <a href="index.html">seek </a> behavior, as we've seen, makes a character move towards a target. When it reaches the destination 
+                    the steering force keeps acting on it based on the same rules, making the character "bounce" back and forth 
+                    around the target.
+                </p>
+
+                <p>
+                    The arrival behavior prevents the character from moving through the target. It makes the character 
+                    slow down as it approaches the destination, eventually stopping at the target.
+                </p>
+
+                <p>
+                    The behavior is composed of two phases. The first phase is when the character is far away from the target 
+                    and it works exactly the same way as the seek behavior does (move at full speed towards the target). The second 
+                    phase is when the character is close to the target, inside the "slowing area" (a circle centered at the target's position):
+                </p>
+
+                <figure>
+                    <img src="Resources\Images\steering_forces_arrival_velocities.png">
+                    <figcaption>When the character enters the circle, it slows down until it stops at the target.</figcaption>
+                </figure>
+
+                <h3>Slowing Down</h3>
+
+                <p>
+                    When the character enters the slowing area its velocity is ramped down linearly to zero. This is achieved by 
+                    adding a new steering force (the arrival force) to the character's velocity vector. The result of this addition 
+                    will eventually become zero, meaning that nothing will be added to the character's position every frame 
+                    (so there will be no movement):
+                </p>
+
+                <!-- Hate this line but couldn't figure out how to get the third party to format it properly with correct whitespace -->
+                <pre><code class="language-cpp">// If (velocity + steering) equals zero, then there is no movement
+velocity = truncate(velocity + steering, max_speed)
+position = position + velocity
+                         
+function truncate(vector:Vector3D, max:Number) :void {
+    var i :Number;
+    i = max / vector.length;
+    i = i < 1.0 ? i : 1.0;
+    vector.scaleBy(i);
+}</code></pre>
+
+                <p>
+                    In order to ensure the character will gradually slow down before it stops, the velocity should not become zero 
+                    immediately. The gradual slow down process is calculated based on the radius of the slowing area and the distance 
+                    between the character and the target:
+                </p>
+
+                <!-- Hate this line but couldn't figure out how to get the third party to format it properly with correct whitespace -->
+                <pre><code class="language-cpp">// Calculate the desired velocity
+desired_velocity = target - position
+distance = length(desired_velocity)
+ 
+// Check the distance to detect whether the character
+// is inside the slowing area
+if (distance < slowingRadius) {
+    // Inside the slowing area
+    desired_velocity = normalize(desired_velocity) * max_velocity * (distance / slowingRadius)
+} else {
+    // Outside the slowing area.
+    desired_velocity = normalize(desired_velocity) * max_velocity
+}
+ 
+// Set the steering based on this
+steering = desired_velocity - velocity</code></pre>
+
+                <p>
+                    If the distance is greater than <code class="language-cpp">slowingRadius</code>, it means the character is far away from the 
+                    target and its velocity should remain <code class="language-cpp">max_velocity</code>.
+                </p>
+
+                <p>
+                    If the distance is less than <code class="language-cpp">slowingRadius</code>, it means the character has entered the slowing area and its 
+                    velocity should be ramped down.
+                </p>
+
+                <p>
+                    The term <code class="language-cpp">distance / slowingRadius</code> will vary from 1 (when <code class="language-cpp">distance </code> 
+                    equals <code class="language-cpp">slowingRadius</code>) to 0 (when <code class="language-cpp">distance </code> is almost zero). 
+                    This linear variation will make the velocity smoothly slow down:
+                </p>
+
+                <figure>
+                    <img src="Resources\Images\steering_forces_arrival_slowing_down_factor.png">
+                </figure>
+
+                <p>As previously described, the character movement is performed as follows:</p>
+
+                <!-- Hate this line but couldn't figure out how to get the third party to format it properly with correct whitespace -->
+                <pre><code class="language-cpp">steering = desired_velocity - velocity
+velocity = truncate (velocity + steering , max_speed)
+position = position + velocity</code></pre>
+
+                <p>
+                    If the desired velocity is ramped down to zero, then the steering force becomes -velocity. As a consequence, when 
+                    that steering force is added to the velocity, it will result in zero, making the character stop moving.
+                </p>
+
+                <p>
+                    What the arrival behavior does, really, is calculate a force that will be equal to -velocity, preventing the character 
+                    from moving as long as that force is in place. The character's original velocity vector does not change and it continues 
+                    to work, but it is nulled by the steering addition. If the arrival steering force is lifted, the character will start moving again, 
+                    using its original velocity vector.
+                </p>
+            </article>
+        </div>
+    </div>
+
+    <footer>
+        <small>Site Design - Brandon Jumbeck 2017</small>
+    </footer>
+</body>

@@ -1,0 +1,373 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <title>Collision Avoidance Behavior</title>
+    <link rel="stylesheet" href="Resources/stylesheet.css">
+    <link rel="stylesheet" href="Resources/prism.css">
+    <script src="Resources/prism.js"></script>
+</head>
+
+<body>
+    <div id="top_bar"/>
+
+    <div id="below_top_bar">
+        <header>
+            <h1>AI: Steering Behaviors</h1>
+
+            <nav>
+                <ul>
+                    <li><a href="index.html">Seek</a></li>
+                    <li><a href="arrive.html">Arrive</a></li>
+                    <li><a href="flee.html">Flee</a></li>
+                    <li><a href="wander.html">Wander</a></li>
+                    <li><a href="collision.html">Collision Avoidance</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <div id="sidebar">
+            <p id="article_info">
+                "Collision Avoidance Behavior" by <a href="https://gamedevelopment.tutsplus.com/tutorials/understanding-steering-behaviors-collision-avoidance--gamedev-7777">Fernando Bevilacqua</a>
+                May 13th 2013
+            </p>
+
+            <p id="about_info">
+                <h3>About this site</h3>
+                This website was used for my final project in my web design course.
+                I chose to create a website that hosts some of my favorite articles about steering behavior AI. 
+                I have not written any of these articles and all credit for the articles content goes to their 
+                writers which is listed above.
+
+                Hopefully you enjoy some of these articles, if you do please check out the creators webpages
+                which have even more for your enjoyment.
+            </p>
+        </div>
+
+        <div id="main_content">
+            <h2>Behavior: Collision Avoidance</h2>
+            <article>
+                <p>
+                    Decent NPC navigation often requires the ability to avoid obstacles. This tutorial covers the collision avoidance 
+                    steering behavior, which allows characters to gracefully dodge any number of obstacles in the environment.
+                </p>
+
+                <p>
+                    <b>Note:</b> Although this tutorial is written using AS3 and Flash, you should be able to use the same techniques 
+                    and concepts in almost any game development environment. You must have a basic understanding of math vectors.
+                </p>
+
+                <h3>Introduction</h3>
+
+                <p>
+                    The basic idea behind collision avoidance is to generate a steering force to dodge obstacles every time one is close 
+                    enough to block the passage. Even if the environment has several obstacles, this behavior will use one of them at a 
+                    time to calculate the avoidance force.
+                </p>
+
+                <p>
+                    Only the obstacles ahead of the character are analyzed; the closest one, said to be the most threatening, is selected 
+                    for evaluation. As a result the character is able to dodge all obstacles in the area, transitioning from one to another 
+                    gracefully and seamlessly.
+                </p>
+
+                <figure>
+                    <img src="Resources\Images\avoidance_obstacles.png">
+                    <figcaption>Obstacles ahead of the character are analyzed and the closest one (most threatening) is selected.</figcaption>
+                </figure>
+
+                <p>
+                    The collision avoidance behavior is not a path finding algorithm. It will make characters move through the environment, 
+                    avoiding obstacles, eventually finding a route to go through the blocks - but it does not work really well with "L" or "T" 
+                    obstacles, for instance.
+                </p>
+
+                <h3>Seeing Ahead</h3>
+
+                <p>
+                    The first step to avoid obstacles in the environment is to perceive them. The only obstacles the character must worry 
+                    are the ones that are in front of it and directly blocking the current route.
+                </p>
+
+                <p>
+                    As <a href="http://gamedev.tutsplus.com/tutorials/implementation/understanding-steering-behaviors-seek/?_ga=2.237440008.900899428.1509729370-269331641.1509729370">previously explained</a>
+                    , the velocity vector describes the direction of the character. It will be used to produce a new vector called ahead, 
+                    which is a copy of the velocity vector, but with a different length:
+                </p>
+
+                <figure>
+                    <img src="Resources\Images\avoidance_ahead_vector.png">
+                    <figcaption>The ahead vector is the character's line of sight.</figcaption>
+                </figure>
+
+                <p>
+                    This vector is calculated as follows:
+                </p>
+
+                <pre><code class="language-cpp">ahead = position + normalize(velocity) * MAX_SEE_AHEAD</code></pre>
+
+                <p>The ahead vector length (adjusted with MAX_SEE_AHEAD) defines how far the character will "see".</p>
+
+                <p>
+                    The greater MAX_SEE_AHEAD is, the earlier the character will start acting to dodge an obstacle, because it will 
+                    perceive it as a threat even if it's far away:
+                </p>
+
+                <figure>
+                    <img src="Resources\Images\avoidance_lengths_ahead.png">
+                    <figcaption>The greater the ahead length is, the earlier the character will start acting to dodge an obstacle.</figcaption>
+                </figure>
+
+                <h3>Checking for Collision</h3>
+
+                <p>
+                    In order to check for collision, every obstacle (or its bounding box) must be described as a geometric form. Using a sphere 
+                    (circle in two dimensins) gives the best results, so every obstacle in the environment will be described as such.
+                </p>
+
+                <p>
+                    One possible solution to check for collision is the line-sphere intersection - the line is the ahead vector and the sphere 
+                    is the obstacle. That approach works, but I'm going to use a simplification of that which is easier to understand and has 
+                    similar results (even better ones at times).
+                </p>
+
+                <p>The ahead vector will be used to produce another vector with half of its length:</p>
+
+                <figure>
+                    <img src="Resources\Images\avoidance_ahead_points.png">
+                    <figcaption>Same direction, half the length.</figcaption>
+                </figure>
+
+                <p>
+                    The ahead2 vector is calculated exactly like ahead, but its length is cut in half:
+                </p>
+
+                <!-- Hate this line but couldn't figure out how to get the third party to format it properly with correct whitespace -->
+                <pre><code class="language-cpp">ahead = position + normalize(velocity) * MAX_SEE_AHEAD
+ahead2 = position + normalize(velocity) * MAX_SEE_AHEAD * 0.5</code></pre>
+
+                <p>
+                    We want to perform a collision check to test whether either of those two vectors are inside the obstacle sphere. 
+                    That's easily accomplished by comparing the distance between the vector's end and the sphere's center.
+                </p>
+
+                <p>
+                    If the distance is less than or equal to the sphere radius, then the vector is inside the sphere and a collision was found:
+                </p>
+
+                <figure>
+                    <img src="Resources\Images\avoidance_ahead_check_inside.png">
+                    <figcaption>The ahead vector is intercepting the obstacle if d &lt; r. The ahead2 vector was omitted for clarity.</figcaption>
+                </figure>
+
+                <p>
+                    If either of the two ahead vectors are inside the obstacle sphere, then that obstacle is blocking the way. 
+                    The Euclidean distance between two points can be used:
+                </p>
+
+                <!-- Hate this line but couldn't figure out how to get the third party to format it properly with correct whitespace -->
+                <pre><code class="language-cpp">private function distance(a :Object, b :Object) :Number {
+    return Math.sqrt((a.x - b.x) * (a.x - b.x)  + (a.y - b.y) * (a.y - b.y));
+}
+ 
+private function lineIntersectsCircle(ahead :Vector3D, ahead2 :Vector3D, obstacle :Circle) :Boolean {
+    // the property "center" of the obstacle is a Vector3D.
+    return distance(obstacle.center, ahead) <= obstacle.radius || distance(obstacle.center, ahead2) <= obstacle.radius;
+}</code></pre>
+
+                <p>
+                    If more than one obstacle is blocking the way, then the closest one (the "most threatening") is selected for calculation:
+                </p>
+
+                <figure>
+                    <img src="Resources\Images\avoidance_multi_obstacles_select_most.png">
+                    <figcaption>The closest obstacle (most threatening) is selected for calculation.</figcaption>
+                </figure>
+
+                <h3>Calculating the Avoidance Force</h3>
+
+                <p>
+                    The avoidance force must push the character away from the obstacle, allowing it to dodge the sphere. It can be done using a 
+                    vector formed by using the center of the sphere (which is a position vector) and the ahead vector. 
+                    We calculate this avoidance force as follows:
+                </p>
+
+                <!-- Hate this line but couldn't figure out how to get the third party to format it properly with correct whitespace -->
+                <pre><code class="language-cpp">avoidance_force = ahead - obstacle_center
+avoidance_force = normalize(avoidance_force) * MAX_AVOID_FORCE</code></pre>
+
+                <p>
+                    After avoidance_force is calculated it is normalized and scaled by MAX_AVOID_FORCE, which is a number used to define the avoidance_force length. 
+                    The greater MAX_AVOID_FORCE is, the stronger is the avoidance force pushing the character away from the obstacle.
+                </p>
+
+                <figure>
+                    <img src="Resources\Images\avoidance_calculare_force.png">
+                    <figcaption>Avoidance force calculation. The dashed orange line shows the path the character will take to avoid the obstacle.</figcaption>
+                </figure>
+
+                <h3>Avoiding the Obstacle</h3>
+
+                <p>The final implementation for the collisionAvoidance() method, which returns the avoidance force, is:</p>
+
+                <!-- Hate this line but couldn't figure out how to get the third party to format it properly with correct whitespace -->
+                <pre><code class="language-cpp">private function collisionAvoidance() :Vector3D {
+    ahead = ...; // calculate the ahead vector
+    ahead2 = ...; // calculate the ahead2 vector
+ 
+    var mostThreatening :Obstacle = findMostThreateningObstacle();
+    var avoidance :Vector3D = new Vector3D(0, 0, 0);
+ 
+    if (mostThreatening != null) {
+        avoidance.x = ahead.x - mostThreatening.center.x;
+        avoidance.y = ahead.y - mostThreatening.center.y;
+ 
+        avoidance.normalize();
+        avoidance.scaleBy(MAX_AVOID_FORCE);
+    } else {
+        avoidance.scaleBy(0); // nullify the avoidance force
+    }
+ 
+    return avoidance;
+}
+ 
+private function findMostThreateningObstacle() :Obstacle {
+    var mostThreatening :Obstacle = null;
+ 
+    for (var i:int = 0; i < Game.instance.obstacles.length; i++) {
+        var obstacle :Obstacle = Game.instance.obstacles[i];
+        var collision :Boolean = lineIntersecsCircle(ahead, ahead2, obstacle);
+ 
+        // "position" is the character's current position
+        if (collision && (mostThreatening == null || distance(position, obstacle) < distance(position, mostThreatening))) {
+            mostThreatening = obstacle;
+        }
+    }
+    return mostThreatening;
+}</code></pre>
+
+                <p>
+                    The avoidance force must be added to the character's velocity vector. 
+                    <a href="http://gamedev.tutsplus.com/tutorials/implementation/understanding-steering-behaviors-movement-manager/?_ga=2.212993308.900899428.1509729370-269331641.1509729370">As previously explained</a>
+                    , all steering forces can be combined into one, producing a force that represents all active behavior acting on the character.
+                </p>
+
+                <p>
+                    Depending on the avoidance force angle and direction it will not interrupt other steering forces, such as <a href="index.html">seek</a> or 
+                    <a href="wander.html">wander</a>. The avoidance force is added to the player velocity as usual:
+                </p>
+
+                <!-- Hate this line but couldn't figure out how to get the third party to format it properly with correct whitespace -->
+                <pre><code class="language-cpp">steering = nothing(); // the null vector, meaning "zero force magnitude"
+steering = steering + seek(); // assuming the character is seeking something
+steering = steering + collisionAvoidance();
+ 
+steering = truncate (steering, max_force)
+steering = steering / mass
+ 
+velocity = truncate (velocity + steering, max_speed)
+position = position + velocity</code></pre>
+
+                <p>
+                    Since all steering behaviors are re-calculated every game update, the avoidance force will remain active as long as the obstacle is blocking the way.
+                </p>
+                
+                <p>
+                    As soon as the obstacle is not intercepting the ahead vector line, the avoidance force will become null (no effect) or it will be re-calculated 
+                    to avoid the new threatening obstacle. The result is a character that is able to avoid obstacles:
+                </p>
+
+                <figure>
+                    <embed width="600" height="480" type="application/x-shockwave-flash" src="https://cdn.tutsplus.com/gamedev/uploads/2013/05/avoidance_simple.swf">
+                    <figcaption>Move the mouse cursor. Click to show forces.</figcaption>
+                </figure>
+
+                <h3>Improving Collision Detection</h3>
+
+                <p>
+                    The current implementation has two problems, both related to the collision detection. The first one happens when the ahead vectors are outside 
+                    the obstacle sphere, but the character is too close to (or inside) the obstacle.
+                </p>
+
+                <p>
+                    If that happens, the character will touch (or enter) the obstacle, skipping the avoidance process because no collision was detected:
+                </p>
+
+                <figure>
+                    <img src="Resources\Images\avoidance_problem_1.png">
+                    <figcaption>Sometimes the ahead vectors are outside the obstacle, but the character is inside.</figcaption>
+                </figure>
+
+                <p>
+                    This problem can be fixed by adding a third vector to the collision check: the character's position vector. 
+                    The use of three vectors greatly improves the collision detection.
+                </p>
+
+                <p>
+                    The second problem happens when the character is close to the obstacle, steering away from it. Sometimes 
+                    the maneuvering will cause a collision, even though the character is just rotating to face another direction:
+                </p>
+
+                <figure>
+                    <img src="Resources\Images\avoidance_problem_2.png">
+                    <figcaption>Maneuvering might cause a collision, even though the character is just rotating.</figcaption>
+                </figure>
+
+                <p>
+                    That problem can be fixed by scaling the ahead vectors according to the character's current velocity. 
+                    The code to calculate the ahead vector, for instance, is changed to:
+                </p>
+
+                <!-- Hate this line but couldn't figure out how to get the third party to format it properly with correct whitespace -->
+                <pre><code class="language-cpp">dynamic_length = length(velocity) / MAX_VELOCITY
+ahead = position + normalize(velocity) * dynamic_length</code></pre>
+
+                <p>
+                    The variable dynamic_length will range from 0 to 1. When the character is moving at full speed, dynamic_length is 1; 
+                    when the character is slowing down or accelerating, dynamic_length is 0 or greater (e.g. 0.5).
+                </p>
+
+                <p>
+                    As a consequence, if the character is just maneuvering without moving, dynamic_length tends to zero, producing 
+                    a null ahead vector, which has no collisions.
+                </p>
+
+                <p>Below is the result with these improvements:</p>
+
+                <figure>
+                    <embed width="600" height="480" type="application/x-shockwave-flash" src="https://cdn.tutsplus.com/gamedev/uploads/2013/05/avoidance_improved.swf">
+                    <figcaption>Move the mouse cursor. Click to show forces.</figcaption>
+                </figure>
+
+                <h3>Demo: It's Zombie Time!</h3>
+
+                <p>
+                    In order to demonstrate the collision avoidance behavior in action, I think a horde of zombies is the perfect fit. Below is a demo showing several zombies 
+                    (with different velocities) seeking the mouse cursor. Art by <a href="http://opengameart.org/content/alien-breed-esque-top-down-tilesheet">SpicyPixel</a> 
+                    and <a href="http://opengameart.org/content/zombie-sprites">Clint Bellanger</a>, from <a href="http://opengameart.org/">OpenGameArt</a>.
+                </p>
+
+                <figure>
+                    <embed width="600" height="480" type="application/x-shockwave-flash" src="https://cdn.tutsplus.com/gamedev/uploads/2013/05/zombies.swf" title="Adobe Flash Player">
+                    <figcaption>Move the mouse cursor. Click to show forces.</figcaption>
+                </figure>
+
+                <h3>Conclusion</h3>
+
+                <p>
+                    The collision avoidance behavior allows any character to dodge obstacles in the environment. Since all steering forces are re-calculated every game update, 
+                    the characters seamlessly interact with different obstacles, always analyzing the most threatening one (the closest).
+                </p>
+
+                <p>
+                    Even though this behavior is not a path finding algorithm, the results achieved are quite convincing for crowded maps.
+                </p>
+            </article>
+        </div>
+    </div>
+
+    <footer>
+        <small>Site Design - Brandon Jumbeck 2017</small>
+    </footer>
+</body>

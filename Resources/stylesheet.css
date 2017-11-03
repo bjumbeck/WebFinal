@@ -1,0 +1,150 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+/**************************************
+/ Header Markup
+/*************************************/
+header {
+    border-bottom: 0.0625em solid #ccc;
+    display: block;
+    padding: 10px 50px;
+
+    text-align: center;
+}
+
+header > h1 {
+    display: inline-block;
+    padding-top: 20px;
+}
+
+header > nav {
+    display: inline-block;
+    padding-left: 15%;
+}
+
+header > nav > ul > li {
+    display: inline-block;
+    padding: 10px 20px;
+}
+
+header > nav > ul > li > a {
+    text-decoration: none;
+    color: black;
+    font-size: 18px;
+}
+
+header > nav > ul > li > a:hover {
+    border-bottom: 0.1875em solid rgba(106, 190, 216, 0.9);
+    padding-bottom: 5px;
+}
+
+/**************************************
+/ Main Elements Markup
+/*************************************/
+
+p {
+    font-family: 'Myriad Pro', 'Helvetica Neue', 'Arial', 'Helvetica', 'sans-serif';
+}
+
+a {
+    font-family: 'Myriad Pro', 'Helvetica Neue', 'Arial', 'Helvetica', 'sans-serif';
+    color: rgba(106, 190, 216, 0.9);
+}
+
+h2 {
+    font-family: "Georgia";
+    font-size: 42px;
+    padding-bottom: 24px;
+}
+
+h3 {
+    font-family: "Georgia";
+    font-size: 24px;
+    padding: 24px 0 12px 0;
+}
+
+footer {
+    clear: left;
+
+    background: #2b2c27;
+    color: #ffffff;
+    height: 0.375em;
+
+    text-align: center;
+    
+    position: relative;
+    bottom: 0;
+
+    width: 100%;
+    height: 20px;
+}
+
+#top_bar {
+    background: #2b2c27;
+    height: 0.375em;
+}
+
+#below_top_bar {
+    width: 75%;
+    margin: 0 auto;
+}
+
+/**************************************
+/ Content Markup
+/*************************************/
+#main_content {
+    width: 70%;
+    float: left;
+
+    padding-top: 8%;
+    padding-left: 10%;
+    padding-bottom: 50px;
+
+    line-height: 24px;
+}
+
+#main_content > article > p {
+    padding: 12px 0;
+}
+
+#main_content > article > figure {
+    display: block;
+    width: 60%;
+    margin: 50px auto;
+}
+
+#main_content > article > figure > embed {
+    width: 100%;
+    margin: 0 auto;
+}
+
+#main_content > article > figure > figcaption {
+    text-align: left;
+}
+
+/**************************************
+/ Sidebar Markup
+/*************************************/
+#sidebar {
+    width: 20%;
+    float: left;
+
+    padding-top: 10.5%;
+    line-height: 24px;
+}
+
+#sidebar > #article_info {
+    line-height: 24px;
+    text-align: right;
+    white-space: pre-line;
+    border-bottom: 0.0625em solid #ccc;
+    padding-bottom: 25px;
+}
+
+#sidebar > #about_info {
+    padding-top: 50px;
+    padding-left: 25px;
+    text-align: left;
+}

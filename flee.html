@@ -1,0 +1,131 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <title>Flee Behavior</title>
+    <link rel="stylesheet" href="Resources/stylesheet.css">
+    <link rel="stylesheet" href="Resources/prism.css">
+    <script src="Resources/prism.js"></script>
+</head>
+
+<body>
+    <div id="top_bar"/>
+
+    <div id="below_top_bar">
+        <header>
+            <h1>AI: Steering Behaviors</h1>
+
+            <nav>
+                <ul>
+                    <li><a href="index.html">Seek</a></li>
+                    <li><a href="arrive.html">Arrive</a></li>
+                    <li><a href="flee.html">Flee</a></li>
+                    <li><a href="wander.html">Wander</a></li>
+                    <li><a href="collision.html">Collision Avoidance</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <div id="sidebar">
+            <p id="article_info">
+                "Flee Behavior" by <a href="https://gamedevelopment.tutsplus.com/tutorials/understanding-steering-behaviors-flee-and-arrival--gamedev-1303">Fernando Bevilacqua</a>
+                October 26th 2012
+            </p>
+
+            <p id="about_info">
+                <h3>About this site</h3>
+                This website was used for my final project in my web design course.
+                I chose to create a website that hosts some of my favorite articles about steering behavior AI. 
+                I have not written any of these articles and all credit for the articles content goes to their 
+                writers which is listed above.
+
+                Hopefully you enjoy some of these articles, if you do please check out the creators webpages
+                which have even more for your enjoyment.
+            </p>
+        </div>
+
+        <div id="main_content">
+            <h2>Behavior: Flee</h2>
+            <article>
+                <p>
+                    The <a href="index.html">seek</a> behavior described previously is based on two forces that push 
+                    the character towards the target: the desired velocity and the steering.
+                </p>
+
+                <!-- Hate this line but couldn't figure out how to get the third party to format it properly with correct whitespace -->
+                <pre><code class="language-cpp">desired_velocity = normalize(target - position) * max_velocity
+steering = desired_velocity - velocity</code></pre>
+
+                <p>
+                    The desired_velocity, in this case, is the shortest path between 
+                    the character and the target. It is calculated by subtracting the target's position from the 
+                    character's position. The result is a force vector that goes from the character towards the target.
+                </p>
+
+                <figure>
+                    <img src="Resources\Images\steering_forces.png">
+                    <figcaption>Seek behavior</figcaption>
+                </figure>
+
+                <p>
+                    The flee behavior uses those same two forces, but they are adjusted to make the character run away from the target:
+                </p>
+
+                <figure>
+                    <img src="Resources\Images\steering_forces_flee.png">
+                    <figcaption>Flee behavior</figcaption>
+                </figure>
+
+                <p>
+                    That new desired_velocity vector is calculated by subtracting the character's position 
+                    from the target's position, which produces a vector that goes from the target towards the character. 
+                </p>
+
+                <p>
+                    The resulting forces are calculated almost the same way as in the seek behavior:
+                </p>
+
+                <!-- Hate this line but couldn't figure out how to get the third party to format it properly with correct whitespace -->
+                <pre><code class="language-cpp">desired_velocity = normalize(position - target) * max_velocity
+steering = desired_velocity - velocity</code></pre>
+
+                <p>
+                    The desired_velocity in that case represents the easiest escaping route the character 
+                    can use to run away from the target. The steering force makes the character abandon its current route, pushing it 
+                    towards the direction of the desired velocity vector.
+                </p>
+
+                <p>
+                    Comparing the desired velocity vector of the flee behavior with the desired velocity vector of the seek behavior, 
+                    the following relation can be established:
+                </p>
+
+                <pre><code class="language-cpp">flee_desired_velocity = -seek_desired_velocity</code></pre>
+
+                <p>In other words, one vector is the negative of the other.</p>
+
+                <h3>Adding Escape Forces</h3>
+
+                <p>
+                    After the steering force is calculated it must be added to the character's velocity vector. Since that 
+                    force is pushing the character away from the target, every frame the character will stop moving towards the 
+                    target and start moving away from it, producing a flee path (the orange curve in the figure below):
+                </p>
+
+                <figure>
+                    <img src="Resources\Images\steering_forces_flee_path.png">
+                </figure>
+
+                <p>
+                    The addition of those forces and the final velocity/position calculation are handled in the same way as 
+                    <a href="http://gamedev.tutsplus.com/tutorials/implementation/understanding-steering-behaviors-seek/?_ga=2.178276396.900899428.1509729370-269331641.1509729370">before</a>. 
+                </p>
+            </article>
+        </div>
+    </div>
+
+    <footer>
+        <small>Site Design - Brandon Jumbeck 2017</small>
+    </footer>
+</body>
